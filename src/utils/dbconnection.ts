@@ -14,12 +14,3 @@ export const pool = mysql.createPool({
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
 });
-
-export async function test() {
-  try {
-    const result = await pool.query("SELECT * from `Coffees`");
-    console.log("result", result);
-  } catch (error) {
-    console.log("error", error);
-  }
-}
