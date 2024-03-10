@@ -1,11 +1,10 @@
 import { deleteById } from "@/utils/dbQuery/DELETE";
 import { selectById } from "@/utils/dbQuery/SELECT";
 import { updateById } from "@/utils/dbQuery/UPDATE";
-import { pool, test } from "@/utils/dbconnection";
+import { pool } from "@/utils/dbconnection";
 import { has, isEmpty } from "lodash";
-import { RowDataPacket } from "mysql2";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { NextResponse } from "next/server";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  *
@@ -13,8 +12,11 @@ import { NextResponse } from "next/server";
  * @param res (this has the dynamic id for whatever reason)
  */
 
-export async function GET(req: NextApiRequest, res: Response) {
-  const { id } = res.params;
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
   const { method } = req;
   try {
     const response: RowDataPacket[string] = await pool.query(selectById, [
@@ -34,14 +36,17 @@ export async function GET(req: NextApiRequest, res: Response) {
     return Response.json({ data: coffee }, { status: 200 });
   } catch (error) {
     return Response.json(
-      { message: `Error finding coffee with id: ${id}` },
+      { message: `Error finding coffee with id: ${id}`, error },
       { status: 500 }
     );
   }
 }
 
-export async function PUT(req: NextApiRequest, res: NextApiResponse) {
-  const { id } = res.params;
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
   const { method } = req;
   const request = await req.json();
 
@@ -62,7 +67,7 @@ export async function PUT(req: NextApiRequest, res: NextApiResponse) {
       }),
     };
 
-    const updateResponse = await pool.query(updateById, [
+    const updateResponse = await pool.query<ResultSetHeader>(updateById, [
       "Coffees",
       valuesFromRequest,
       "coffeeId",
@@ -92,12 +97,15 @@ export async function PUT(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export async function DELETE(req: NextApiRequest, res: NextApiResponse) {
-  const { id } = res.params;
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
   const { method } = req;
 
   try {
-    const deleteResponse = await pool.query(deleteById, [
+    const deleteResponse = await pool.query<ResultSetHeader>(deleteById, [
       "Coffees",
       "coffeeId",
       id,

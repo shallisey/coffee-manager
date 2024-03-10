@@ -1,10 +1,10 @@
 import { insertIntoTable } from "@/utils/dbQuery/INSERT";
 import { selectAllFromTable } from "@/utils/dbQuery/SELECT";
 import { pool } from "@/utils/dbconnection";
-import ResultSetHeader from "mysql2/promise";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { ResultSetHeader } from "mysql2/promise";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(req: NextRequest, res: NextResponse) {
   try {
     const response = await pool.query(selectAllFromTable, [`Coffees`]);
 
@@ -15,7 +15,7 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
     return Response.json({ message: `Unexpected error` }, { status: 500 });
   }
 }
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
+export async function POST(req: NextRequest, res: NextResponse) {
   const request = await req.json();
   try {
     /**
@@ -36,7 +36,7 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
       distributorId,
     } = request;
 
-    const response = await pool.query(insertIntoTable, [
+    const response = await pool.query<ResultSetHeader>(insertIntoTable, [
       "Coffees",
       name,
       countryOrigin,
@@ -52,7 +52,7 @@ export async function POST(req: NextApiRequest, res: NextApiResponse) {
       { data: `Successfully created coffee with coffeeId: ${insertId}` },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     const { sqlMessage, sql, ...rest } = error;
     return Response.json(
       { message: `Error`, error: { ...rest } },
